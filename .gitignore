@@ -1,0 +1,33 @@
+# Unreal 기본 무시
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.log
+*.tmp
+Build/
+
+# Content 전체 무시
+Content/*
+
+# 단, 이 두 개 폴더는 무시하지 않음(= GitHub에 포함)
+!Content/Blocks/
+!Content/Objects/
+
+# Blocks, Objects 안에서도 특정 파일만 빼고 싶으면 여기 추가
+# 예: !Content/Blocks/**/*.uasset
+
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+*.ipch
+
+
+
+# 기타 IDE
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
