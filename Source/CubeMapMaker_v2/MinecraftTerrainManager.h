@@ -95,6 +95,9 @@ public:
     UPROPERTY(EditAnywhere, Category = "Terrain|House", meta = (EditCondition = "bEnableHouse"))
     int32 HouseChunkY = 0;      // 집이 들어갈 청크 Y 인덱스
 
+    
+
+
 
 private:
     // 이미 스폰된 청크들 (에디터에서 재구성 시 정리용)

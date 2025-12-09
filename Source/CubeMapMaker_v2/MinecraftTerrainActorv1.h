@@ -155,6 +155,71 @@ public:
 	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House")
 	int32 HouseFlattenMargin = 3;
 
+	// --- 수평(각 벽) 창문 설정 ---
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 FrontWindowCount = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 BackWindowCount = 3;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 LeftWindowCount = 3;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 RightWindowCount = 3;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 FrontWindowCenterOffset = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 BackWindowCenterOffset = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 LeftWindowCenterOffset = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	int32 RightWindowCenterOffset = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Horizontal")
+	bool bAllowFrontWindowsNearDoor = false;
+
+	// --- 수직(층) 창문 설정 ---
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical", meta = (ClampMin = "1", ClampMax = "5"))
+	int32 WindowRowCount = 1;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical", meta = (ClampMin = "1"))
+	int32 FirstWindowHeightBlock = 2;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical", meta = (ClampMin = "1"))
+	int32 WindowRowSpacingBlocks = 2;
+
+	// 벽별 수직 오프셋 (블록 단위)
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 FrontWindowVerticalOffsetBlocks = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 BackWindowVerticalOffsetBlocks = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 LeftWindowVerticalOffsetBlocks = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 RightWindowVerticalOffsetBlocks = 0;
+
+	// 면별 RowCount Override (0이면 Global WindowRowCount 사용)
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 FrontWindowRowCountOverride = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 BackWindowRowCountOverride = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 LeftWindowRowCountOverride = 0;
+
+	UPROPERTY(EditAnywhere, Category = "A.MinecraftTerrain|House|Window|Vertical")
+	int32 RightWindowRowCountOverride = 0;
+
+
 
 public:
 	UPROPERTY(VisibleAnywhere)

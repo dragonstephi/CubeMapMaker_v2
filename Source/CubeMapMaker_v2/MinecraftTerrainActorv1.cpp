@@ -326,6 +326,9 @@
     {
         Super::OnConstruction(Transform);
 
+        // ============= 여기까지 준비, 아래에서 실제 벽/창문 루프에서 사용 =============
+
+
         if (!GrassBlocks || !DirtBlocks || !CobblestoneBlocks)
         {
             return;
@@ -923,69 +926,182 @@
             // ────────────────────────────────
             // 5) 바닥 + 벽 + 창문 생성
             // ────────────────────────────────
-            for (int32 HX = StartX; HX <= EndX; ++HX)
+            
+            // 5-0) 집 바닥 (나무 바닥) 생성
             {
-                for (int32 HY = StartY; HY <= EndY; ++HY)
+                for (int32 HX = StartX; HX <= EndX; ++HX)
                 {
-                    // --- 바닥 ---
+                    for (int32 HY = StartY; HY <= EndY; ++HY)
                     {
                         FVector FloorLocation(
                             HX * BlockSize,
                             HY * BlockSize,
-                            FloorZ
+                            FloorZ   // 위에서 계산한 집 바닥 높이
                         );
-                        OakPlanksBlocks->AddInstance(FTransform(FRotator::ZeroRotator, FloorLocation, FVector(1.f)));
+
+                        OakPlanksBlocks->AddInstance(
+                            FTransform(
+                                FRotator::ZeroRotator,
+                                FloorLocation,
+                                FVector(1.f)
+                            )
+                        );
+                    }
+                }
+            }
+
+
+            // ============= 창문 배치 설정 + 계산 =============
+
+            // (1) 창문 위치 계산 헬퍼 (가로)
+            auto ComputeWindowRange = [](int32 Start, int32 End, int32 Center, int32 Count, int32 CenterOffset, TArray<int32>& OutIndices)
+                {
+                    OutIndices.Reset();
+
+                    if (Count <= 0)
+                    {
+                        return;
                     }
 
-                    // 테두리가 아니라면 벽 없음
+                    int32 EffectiveCenter = Center + CenterOffset;
+                    EffectiveCenter = FMath::Clamp(EffectiveCenter, Start, End);
+
+                    const float Half = (Count - 1) * 0.5f;
+
+                    for (int32 i = 0; i < Count; ++i)
+                    {
+                        const float OffsetF = (float)i - Half;
+                        int32 Index = EffectiveCenter + FMath::RoundToInt(OffsetF);
+
+                        Index = FMath::Clamp(Index, Start, End);
+                        OutIndices.AddUnique(Index);
+                    }
+                };
+
+            // (2) 창문 높이(층) 판정 – 벽별 VerticalOffset 적용
+            auto IsWindowHeightForWall = [this](int32 HZ, int32 VerticalOffsetBlocks, int32 RowCountOverride) -> bool
+                {
+                    // RowCountOverride > 0 이면 그 값 우선, 아니면 공통 WindowRowCount 사용
+                    int32 UseRowCount = (RowCountOverride > 0) ? RowCountOverride : WindowRowCount;
+
+                    if (UseRowCount <= 0)
+                    {
+                        return false;
+                    }
+
+                    for (int32 Row = 0; Row < UseRowCount; ++Row)
+                    {
+                        const int32 RowZ =
+                            FirstWindowHeightBlock
+                            + VerticalOffsetBlocks
+                            + Row * WindowRowSpacingBlocks;
+
+                        if (RowZ < 1 || RowZ > this->HouseWallHeight)
+                        {
+                            continue;
+                        }
+
+                        if (HZ == RowZ)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+
+            // (3) 각 벽에 창문이 들어갈 인덱스 계산
+            TArray<int32> FrontWindowXs;
+            TArray<int32> BackWindowXs;
+            TArray<int32> LeftWindowYs;
+            TArray<int32> RightWindowYs;
+
+            // ⬇⬇⬇ 여기서부터는 “로컬 const” 절대 선언하지 말고, 전부 멤버를 그대로 사용 ⬇⬇⬇
+            ComputeWindowRange(StartX, EndX, CenterX, FrontWindowCount, FrontWindowCenterOffset, FrontWindowXs);
+            ComputeWindowRange(StartX, EndX, CenterX, BackWindowCount, BackWindowCenterOffset, BackWindowXs);
+            ComputeWindowRange(StartY, EndY, CenterY, LeftWindowCount, LeftWindowCenterOffset, LeftWindowYs);
+            ComputeWindowRange(StartY, EndY, CenterY, RightWindowCount, RightWindowCenterOffset, RightWindowYs);
+
+
+            for (int32 HX = StartX; HX <= EndX; ++HX)
+            {
+                for (int32 HY = StartY; HY <= EndY; ++HY)
+                {
                     const bool bIsBorder = (HX == StartX || HX == EndX || HY == StartY || HY == EndY);
                     if (!bIsBorder)
+                    {
                         continue;
+                    }
 
                     const bool bIsFront = (HY == StartY);
                     const bool bIsBack = (HY == EndY);
                     const bool bIsLeft = (HX == StartX);
                     const bool bIsRight = (HX == EndX);
 
-                    const int32 WindowHeight = 2;
-
                     for (int32 HZ = 1; HZ <= HouseWallHeight; ++HZ)
                     {
-                        // 문 위치는 비우기
+                        // 문 위치
                         const bool bIsDoor =
                             bIsFront &&
                             HX == DoorX &&
                             HZ <= DoorHeightBlocks;
 
                         if (bIsDoor)
+                        {
                             continue;
+                        }
 
-                        // 문 양옆 타일에는 창문 없음
-                        const bool bNearDoor =
-                            bIsFront &&
-                            FMath::Abs(HX - DoorX) == 1;
+                        // 벽별 “이 높이가 창문층인가?” 판정
+                        const bool bFrontHeight = bIsFront && IsWindowHeightForWall(HZ, FrontWindowVerticalOffsetBlocks, FrontWindowRowCountOverride);
+                        const bool bBackHeight = bIsBack && IsWindowHeightForWall(HZ, BackWindowVerticalOffsetBlocks, BackWindowRowCountOverride);
+                        const bool bLeftHeight = bIsLeft && IsWindowHeightForWall(HZ, LeftWindowVerticalOffsetBlocks, LeftWindowRowCountOverride);
+                        const bool bRightHeight = bIsRight && IsWindowHeightForWall(HZ, RightWindowVerticalOffsetBlocks, RightWindowRowCountOverride);
+
+
+                        // 문 양옆 창 제한 (front 전용)
+                        bool bNearDoor = false;
+                        if (bFrontHeight && !bAllowFrontWindowsNearDoor)
+                        {
+                            bNearDoor =
+                                FMath::Abs(HX - DoorX) == 1;   // 같은 HZ에서만 처리하고 싶으면 && HZ == ... 추가 가능
+                        }
 
                         bool bIsWindow = false;
 
-                        if (!bNearDoor && HZ == WindowHeight)
+                        if (!bNearDoor)
                         {
-                            if ((bIsFront || bIsBack) && FMath::Abs(HX - CenterX) <= 1)
+                            if (bFrontHeight && FrontWindowXs.Contains(HX))
                                 bIsWindow = true;
 
-                            if ((bIsLeft || bIsRight) && FMath::Abs(HY - CenterY) <= 1)
+                            if (bBackHeight && BackWindowXs.Contains(HX))
+                                bIsWindow = true;
+
+                            if (bLeftHeight && LeftWindowYs.Contains(HY))
+                                bIsWindow = true;
+
+                            if (bRightHeight && RightWindowYs.Contains(HY))
                                 bIsWindow = true;
                         }
 
-                        FVector WallLocation(
+                        const float WallZ = FloorZ + HZ * BlockSize;
+                        const FVector WallLocation(
                             HX * BlockSize,
                             HY * BlockSize,
-                            FloorZ + HZ * BlockSize
+                            WallZ
                         );
 
                         if (bIsWindow)
-                            GlassBlocks->AddInstance(FTransform(FRotator::ZeroRotator, WallLocation, FVector(1.f)));
+                        {
+                            GlassBlocks->AddInstance(
+                                FTransform(FRotator::ZeroRotator, WallLocation, FVector(1.f))
+                            );
+                        }
                         else
-                            OakPlanksBlocks->AddInstance(FTransform(FRotator::ZeroRotator, WallLocation, FVector(1.f)));
+                        {
+                            OakPlanksBlocks->AddInstance(
+                                FTransform(FRotator::ZeroRotator, WallLocation, FVector(1.f))
+                            );
+                        }
                     }
                 }
             }
