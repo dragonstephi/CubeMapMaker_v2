@@ -95,6 +95,14 @@ public:
     UPROPERTY(EditAnywhere, Category = "Terrain|House", meta = (EditCondition = "bEnableHouse"))
     int32 HouseChunkY = 0;      // 집이 들어갈 청크 Y 인덱스
 
+    // ===== Debug / Regenerate =====
+    UPROPERTY(EditAnywhere, Category = "Terrain|Debug")
+    bool bRegenerateNow = false;
+
+    // 에디터에서 지형 자동 재생성 막기 (기본 true 추천)
+    UPROPERTY(EditAnywhere, Category = "Terrain|Debug")
+    bool bAutoRebuildInEditor = false;
+
     
 
 

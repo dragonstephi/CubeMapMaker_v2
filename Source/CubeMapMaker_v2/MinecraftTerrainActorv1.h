@@ -7,10 +7,10 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 
-
+// Forward-declare procedural mesh to avoid including engine headers after the generated.h
+class UProceduralMeshComponent;
 
 #include "MinecraftTerrainActorv1.generated.h"
-
 
 UCLASS()
 class CUBEMAPMAKER_V2_API AMinecraftTerrainActor : public AActor
@@ -221,6 +221,8 @@ public:
 
 
 
+
+
 public:
 	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* GrassBlocks;
@@ -264,6 +266,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "A.MinecraftTerrain|Fence")
 	UInstancedStaticMeshComponent* OakLogPillars;
+
+	UPROPERTY(VisibleAnywhere, Category = "Voxel")
+	UProceduralMeshComponent* ProcMesh = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Voxel")
+	bool bUseProceduralMesh = true;
+
+	UPROPERTY(EditAnywhere, Category = "Voxel")
+	bool bGenerateCollision = false; // 1단계에서는 OFF 추천(성능)
 
 
 
