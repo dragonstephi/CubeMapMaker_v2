@@ -1,4 +1,3 @@
-// TerrainManager.cpp
 #include "TerrainManager.h"
 #include "ChunkActor.h"
 #include "Engine/World.h"
@@ -10,60 +9,40 @@ ATerrainManager::ATerrainManager()
 
 void ATerrainManager::OnConstruction(const FTransform& Transform)
 {
-    Super::OnConstruction(Transform);
-
-    const bool bShouldRebuild = bRegenerateNow || bAutoRebuildInEditor;
-    if (!bShouldRebuild)
-        return;
-
-    bRegenerateNow = false;
-
     ClearChunks();
     BuildChunks();
 }
 
 void ATerrainManager::ClearChunks()
 {
-    for (AChunkActor* C : SpawnedChunks)
+    for (AChunkActor* A : SpawnedChunks)
     {
-        if (IsValid(C))
+        if (IsValid(A))
         {
-            C->Destroy();
+            A->Destroy();
         }
     }
-    SpawnedChunks.Reset();
+    SpawnedChunks.Empty();
 }
 
 void ATerrainManager::BuildChunks()
 {
-    if (!GetWorld())
-        return;
+    if (!GetWorld() || !ChunkClass) return;
 
-    if (!ChunkClass)
+    for (int32 y = 0; y < ChunksY; ++y)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[TerrainManager] ChunkClass is NULL. Set it in Details."));
-        return;
-    }
-
-    const float ChunkWorldX = (float)ChunkWidth * BlockSize;
-    const float ChunkWorldY = (float)ChunkHeight * BlockSize;
-
-    for (int32 cy = 0; cy < ChunksY; cy++)
-    {
-        for (int32 cx = 0; cx < ChunksX; cx++)
+        for (int32 x = 0; x < ChunksX; ++x)
         {
-            const FVector Loc = GetActorLocation() + FVector(cx * ChunkWorldX, cy * ChunkWorldY, 0.f);
-            const FRotator Rot = FRotator::ZeroRotator;
+            const FVector Loc = GetActorLocation() + FVector(x * ChunkSpacing, y * ChunkSpacing, 0.f);
+            FActorSpawnParameters Params;
+            Params.Owner = this;
+            Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-            AChunkActor* Chunk = GetWorld()->SpawnActor<AChunkActor>(ChunkClass, Loc, Rot);
-            if (!Chunk) continue;
-
-            Chunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-            Chunk->BuildChunk(ChunkWidth, ChunkHeight, BlockSize, Seed, FIntPoint(cx, cy));
-
-            SpawnedChunks.Add(Chunk);
+            AChunkActor* Chunk = GetWorld()->SpawnActor<AChunkActor>(ChunkClass, Loc, FRotator::ZeroRotator, Params);
+            if (Chunk)
+            {
+                SpawnedChunks.Add(Chunk);
+            }
         }
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("[TerrainManager] Built chunks: %d"), SpawnedChunks.Num());
 }

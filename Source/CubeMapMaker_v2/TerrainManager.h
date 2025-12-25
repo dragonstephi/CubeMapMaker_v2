@@ -1,4 +1,3 @@
-// TerrainManager.h
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,40 +14,24 @@ class CUBEMAPMAKER_V2_API ATerrainManager : public AActor
 public:
     ATerrainManager();
 
-protected:
-    virtual void OnConstruction(const FTransform& Transform) override;
-
-public:
     UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
-    int32 ChunksX = 4;
+    int32 ChunksX = 2;
 
     UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
-    int32 ChunksY = 4;
-
-    UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
-    int32 ChunkWidth = 32;
-
-    UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
-    int32 ChunkHeight = 32;
-
-    UPROPERTY(EditAnywhere, Category = "Terrain|Settings")
-    float BlockSize = 100.f;
-
-    UPROPERTY(EditAnywhere, Category = "Terrain|Settings")
-    int32 Seed = 12345;
+    int32 ChunksY = 2;
 
     UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
     TSubclassOf<AChunkActor> ChunkClass;
 
-    UPROPERTY(EditAnywhere, Category = "Terrain|Debug")
-    bool bRegenerateNow = false;
+    UPROPERTY(EditAnywhere, Category = "Terrain|Chunks")
+    float ChunkSpacing = 1200.f; // 청크 간격(= Width*TileSize 정도로 맞추면 딱 붙음)
 
-    UPROPERTY(EditAnywhere, Category = "Terrain|Debug")
-    bool bAutoRebuildInEditor = false;
+protected:
+    virtual void OnConstruction(const FTransform& Transform) override;
 
 private:
     UPROPERTY(Transient)
-    TArray<AChunkActor*> SpawnedChunks;
+    TArray<TObjectPtr<AChunkActor>> SpawnedChunks;
 
     void ClearChunks();
     void BuildChunks();
